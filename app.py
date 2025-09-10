@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 
 # Configuração da página
 st.set_page_config(
-    page_title="Gestão de Capital",
+    page_title="Gestão de Banca",
     page_icon="💰",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -294,7 +294,7 @@ else:
 st.markdown("""
     <h1 style='text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); 
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;'>
-    💰 Gestão de Capital
+    💰 Gestão de Banca
     </h1>
 """, unsafe_allow_html=True)
 
@@ -536,12 +536,24 @@ for i in range(30):
 # Criar DataFrame
 df = pd.DataFrame(table_data)
 
-# Aplicar estilos
+# Função segura para extrair valores numéricos
+def safe_extract_value(cell_value):
+    if cell_value == "R$ -":
+        return None
+    try:
+        # Remove "R$ " e converte para float
+        return float(cell_value.replace("R$ ", "").strip())
+    except (ValueError, AttributeError):
+        return None
+
+# Aplicar estilos CORRIGIDOS - sem conversão direta de string para float
 styled_df = df.style\
-    .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x.startswith('R$ -') and '-' in x else '', subset=['Lucro do Dia'])\
-    .applymap(lambda x: 'color: #10b981; font-weight: bold;' if x.startswith('R$') and float(x[3:]) > 0 else '', subset=['Lucro do Dia'])\
-    .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x.endswith('%') and float(x[:-1]) < 0 else '', subset=['% da Banca'])\
-    .applymap(lambda x: 'color: #10b981; font-weight: bold;' if x.endswith('%') and float(x[:-1]) > 0 else '', subset=['% da Banca'])\
+    .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x == "R$ -" else '', subset=['Lucro do Dia'])\
+    .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x.startswith('R$ -') else '', subset=['Lucro do Dia'])\
+    .applymap(lambda x: 'color: #10b981; font-weight: bold;' if x.startswith('R$') and x != "R$ -" and safe_extract_value(x) is not None and safe_extract_value(x) > 0 else '', subset=['Lucro do Dia'])\
+    .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x.startswith('R$') and x != "R$ -" and safe_extract_value(x) is not None and safe_extract_value(x) < 0 else '', subset=['Lucro do Dia'])\
+    .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x.endswith('%') and x != "0.00%" and safe_extract_value(x.replace('%', '')) is not None and safe_extract_value(x.replace('%', '')) < 0 else '', subset=['% da Banca'])\
+    .applymap(lambda x: 'color: #10b981; font-weight: bold;' if x.endswith('%') and x != "0.00%" and safe_extract_value(x.replace('%', '')) is not None and safe_extract_value(x.replace('%', '')) > 0 else '', subset=['% da Banca'])\
     .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x == '❌ Violado' else '', subset=['Status'])\
     .applymap(lambda x: 'color: #10b981; font-weight: bold;' if x == '✅ Respeitado' else '', subset=['Status'])
 
