@@ -29,6 +29,10 @@ if 'dark_mode' not in st.session_state:
 if 'editing_day' not in st.session_state:
     st.session_state.editing_day = None
 
+# Variável para controle de edição rápida
+if 'quick_edit_day' not in st.session_state:
+    st.session_state.quick_edit_day = None
+
 # Aplicar modo escuro se ativado
 if st.session_state.dark_mode:
     dark_mode_css = """
@@ -298,6 +302,13 @@ st.markdown("""
     </h1>
 """, unsafe_allow_html=True)
 
+# Processar edição rápida se houver
+if st.session_state.quick_edit_day is not None:
+    st.session_state.profit_day_input = st.session_state.quick_edit_day
+    st.session_state.daily_profit_input = st.session_state.daily_profits[st.session_state.quick_edit_day - 1] if st.session_state.daily_profits[st.session_state.quick_edit_day - 1] is not None else 0.0
+    st.session_state.quick_edit_day = None
+    st.rerun()
+
 # Sidebar para configurações
 with st.sidebar:
     st.header("⚙️ Configurações")
@@ -349,7 +360,7 @@ with st.sidebar:
         "Dia", 
         min_value=1, 
         max_value=30, 
-        value=1,
+        value=st.session_state.get('profit_day_input', 1),
         key="profit_day_input"
     )
     
@@ -549,7 +560,6 @@ def safe_extract_value(cell_value):
 # Aplicar estilos CORRIGIDOS - sem conversão direta de string para float
 styled_df = df.style\
     .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x == "R$ -" else '', subset=['Lucro do Dia'])\
-    .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x.startswith('R$ -') else '', subset=['Lucro do Dia'])\
     .applymap(lambda x: 'color: #10b981; font-weight: bold;' if x.startswith('R$') and x != "R$ -" and safe_extract_value(x) is not None and safe_extract_value(x) > 0 else '', subset=['Lucro do Dia'])\
     .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x.startswith('R$') and x != "R$ -" and safe_extract_value(x) is not None and safe_extract_value(x) < 0 else '', subset=['Lucro do Dia'])\
     .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x.endswith('%') and x != "0.00%" and safe_extract_value(x.replace('%', '')) is not None and safe_extract_value(x.replace('%', '')) < 0 else '', subset=['% da Banca'])\
@@ -560,20 +570,22 @@ styled_df = df.style\
 # Exibir tabela
 st.dataframe(styled_df, use_container_width=True, hide_index=True)
 
-# Botões de edição rápida
+# Botões de edição rápida - CORRIGIDO
 st.subheader("⚡ Edição Rápida por Dia")
-cols = st.columns(6)
-for i in range(30):
-    with cols[i % 6]:
-        day = i + 1
-        profit = st.session_state.daily_profits[i]
-        button_label = f"Dia {day}" + (f": {profit:.2f}" if profit is not None else "")
-        button_type = "primary" if profit is not None else "secondary"
-        
-        if st.button(button_label, key=f"edit_{i}", use_container_width=True, type=button_type):
-            st.session_state.profit_day_input = day
-            st.session_state.daily_profit_input = profit if profit is not None else 0.0
-            st.rerun()
+
+# Usar form para evitar o erro de session_state
+with st.form("quick_edit_form"):
+    cols = st.columns(6)
+    for i in range(30):
+        with cols[i % 6]:
+            day = i + 1
+            profit = st.session_state.daily_profits[i]
+            button_label = f"Dia {day}" + (f": {profit:.2f}" if profit is not None else "")
+            
+            # Botão para cada dia
+            if st.form_submit_button(button_label, use_container_width=True):
+                st.session_state.quick_edit_day = day
+                st.rerun()
 
 # Botão para resetar todos os dados
 if st.button("🔄 Resetar Todos os Dados", type="secondary"):
