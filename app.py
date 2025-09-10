@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 
 # Configuração da página
 st.set_page_config(
-    page_title="Gestão de Banca",
+    page_title="Gestão do Capital",
     page_icon="💰",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -450,3 +450,4 @@ with st.expander("📊 Estatísticas Detalhadas"):
         st.metric("Dias com Prejuízo", days_with_loss)
     with col3:
         st.metric("Dias Pendentes", days_pending)
+
