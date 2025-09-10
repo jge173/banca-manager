@@ -11,16 +11,35 @@ def carregar_lucros():
     try:
         response = supabase.table("lucros_diarios").select("*").order("dia").execute()
         return {item["dia"]: item["lucro"] for item in response.data}
-    except Exception:
-        st.warning("Erro ao carregar dados do Supabase. Usando dados locais.")
+    except Exception as e:
+        st.warning(f"Erro ao carregar dados do Supabase: {e}. Usando dados locais.")
         return {}
 
 def salvar_lucro(dia, lucro):
     try:
-        supabase.table("lucros_diarios").upsert({"dia": dia, "lucro": lucro}).execute()
-    except Exception:
-        st.error("Erro ao salvar no Supabase.")
+        # Se o lucro for None, remover do banco, caso contrário, upsert
+        if lucro is None:
+            supabase.table("lucros_diarios").delete().eq("dia", dia).execute()
+            st.success(f"✅ Lucro do dia {dia} removido do banco de dados!")
+        else:
+            supabase.table("lucros_diarios").upsert({"dia": dia, "lucro": float(lucro)}).execute()
+            st.success(f"✅ Lucro do dia {dia} salvo no banco de dados!")
+        return True
+    except Exception as e:
+        st.error(f"❌ Erro ao salvar no Supabase: {e}")
+        return False
 
+def limpar_todos_dados():
+    try:
+        # Limpar todos os registros da tabela
+        supabase.table("lucros_diarios").delete().neq("dia", 0).execute()
+        st.success("✅ Todos os dados foram removidos do banco de dados!")
+        return True
+    except Exception as e:
+        st.error(f"❌ Erro ao limpar dados do Supabase: {e}")
+        return False
+
+# Carregar dados do Supabase ao iniciar
 if 'daily_profits' not in st.session_state:
     lucros = carregar_lucros()
     st.session_state.daily_profits = [lucros.get(i+1, None) for i in range(30)]
@@ -42,9 +61,6 @@ if 'daily_goal' not in st.session_state:
     
 if 'stop_loss' not in st.session_state:
     st.session_state.stop_loss = 5.00
-    
-if 'daily_profits' not in st.session_state:
-    st.session_state.daily_profits = [None] * 30
     
 if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = False
@@ -424,13 +440,16 @@ with st.sidebar:
     with col1:
         if st.button("💾 Salvar", type="primary", disabled=not allow_save):
             st.session_state.daily_profits[profit_day-1] = daily_profit
-            salvar_lucro(profit_day, daily_profit)
-            st.session_state.editing_day = None
-            st.rerun()
+            # Salvar no banco de dados
+            if salvar_lucro(profit_day, daily_profit):
+                st.session_state.editing_day = None
+                st.rerun()
     with col2:
         if st.button("🗑️ Limpar", type="secondary"):
             st.session_state.daily_profits[profit_day-1] = None
-            st.rerun()
+            # Remover do banco de dados
+            if salvar_lucro(profit_day, None):
+                st.rerun()
 
 # Cálculos dos valores
 current_value = st.session_state.initial_value
@@ -468,7 +487,7 @@ col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.metric("💰 Valor Inicial", f"R$ {st.session_state.initial_value:.2f}")
 with col2:
-    st.metric("📉 Valor Atual", f"R$ {daily_values[-1]:.2f}")
+    st.metric("📊 Valor Atual", f"R$ {daily_values[-1]:.2f}")
 with col3:
     profit_color = "#ef4444" if total_profit < 0 else "#10b981"
     st.metric("💵 Lucro Líquido", f"R$ {total_profit:.2f}", f"{total_percent:.2f}%")
@@ -643,10 +662,14 @@ with st.form("quick_edit_form"):
 
 # Botão para resetar todos os dados
 if st.button("🔄 Resetar Todos os Dados", type="secondary"):
+    # Limpar dados da sessão
     for key in st.session_state.keys():
         if key not in ['dark_mode', 'stop_loss']:
             del st.session_state[key]
-    st.rerun()
+    
+    # Limpar dados do banco de dados
+    if limpar_todos_dados():
+        st.rerun()
 
 # Informações de uso
 with st.expander("ℹ️ Como usar - Stop Loss e Modo Escuro"):
@@ -699,3 +722,22 @@ with st.expander("📊 Estatísticas Detalhadas"):
     with col4:
         st.metric("🛑 Stop Loss Violado", days_stop_loss_violated)
 
+# Seção de debug para verificar conexão com o banco
+with st.expander("🔧 Debug - Status do Banco de Dados"):
+    try:
+        # Testar conexão
+        response = supabase.table("lucros_diarios").select("count", count="exact").execute()
+        st.success(f"✅ Conexão com Supabase bem-sucedida!")
+        st.info(f"📊 Total de registros na tabela: {response.count}")
+        
+        # Mostrar alguns registros
+        records = supabase.table("lucros_diarios").select("*").order("dia").limit(5).execute()
+        if records.data:
+            st.write("📝 Últimos registros:")
+            for record in records.data:
+                st.write(f"- Dia {record['dia']}: R$ {record['lucro']:.2f}")
+        else:
+            st.info("ℹ️ Nenhum registro encontrado na tabela.")
+            
+    except Exception as e:
+        st.error(f"❌ Erro ao conectar com o banco: {e}")
