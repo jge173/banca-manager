@@ -134,7 +134,7 @@ else:
     st.markdown(light_mode_css, unsafe_allow_html=True)
 
 # Título da aplicação
-st.title("💰 Gestão de Banca")
+st.title("💰 Gestão do Capital")
 
 # Sidebar para configurações
 with st.sidebar:
@@ -450,4 +450,5 @@ with st.expander("📊 Estatísticas Detalhadas"):
         st.metric("Dias com Prejuízo", days_with_loss)
     with col3:
         st.metric("Dias Pendentes", days_pending)
+
 
