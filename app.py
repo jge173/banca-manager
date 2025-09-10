@@ -18,7 +18,7 @@ if 'daily_goal' not in st.session_state:
     st.session_state.daily_goal = 10.00
     
 if 'stop_loss' not in st.session_state:
-    st.session_state.stop_loss = 5.00  # Stop loss padrão de 5%
+    st.session_state.stop_loss = 5.00
     
 if 'daily_profits' not in st.session_state:
     st.session_state.daily_profits = [None] * 30
@@ -34,11 +34,16 @@ if st.session_state.dark_mode:
     dark_mode_css = """
     <style>
     :root {
-        --primary-bg: #1a1a1a;
-        --secondary-bg: #2d2d2d;
-        --tertiary-bg: #3d3d3d;
-        --primary-text: #e0e0e0;
-        --border-color: #444444;
+        --primary-bg: #0f172a;
+        --secondary-bg: #1e293b;
+        --tertiary-bg: #334155;
+        --primary-text: #f1f5f9;
+        --secondary-text: #cbd5e1;
+        --border-color: #475569;
+        --accent-color: #3b82f6;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
     }
     
     .stApp {
@@ -46,73 +51,186 @@ if st.session_state.dark_mode:
         color: var(--primary-text);
     }
     
+    /* Sidebar e elementos principais */
     .css-18e3th9, .css-1d391kg, .st-bb, .st-at, .st-bh, .st-bx {
         background-color: var(--secondary-bg) !important;
+        color: var(--primary-text) !important;
     }
     
+    /* Inputs */
     .stNumberInput input, .stTextInput input, .stSelectbox select {
         background-color: var(--tertiary-bg) !important;
         color: var(--primary-text) !important;
-        border-color: var(--border-color) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 6px !important;
     }
     
+    /* Labels dos inputs */
+    .stNumberInput label, .stTextInput label, .stSelectbox label {
+        color: var(--secondary-text) !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Tabelas */
     .stDataFrame {
         background-color: var(--secondary-bg) !important;
         color: var(--primary-text) !important;
     }
     
+    /* Métricas */
     .stMetric {
         background-color: var(--secondary-bg) !important;
-        color: var(--primary-text) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 8px !important;
+        padding: 12px !important;
     }
     
     .stMetric label {
-        color: var(--primary-text) !important;
+        color: var(--secondary-text) !important;
+        font-size: 0.9rem !important;
     }
     
+    .stMetric div {
+        color: var(--primary-text) !important;
+        font-size: 1.4rem !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Botões */
     .stButton button {
-        background-color: #2980b9 !important;
+        background-color: var(--accent-color) !important;
         color: white !important;
+        border: none !important;
+        border-radius: 6px !important;
+        font-weight: 500 !important;
+        transition: all 0.2s ease !important;
     }
     
     .stButton button:hover {
-        background-color: #1d6fa5 !important;
+        background-color: #2563eb !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
     }
     
+    /* Tabs e seções */
     .css-1y4v5go {
         background-color: var(--secondary-bg) !important;
     }
     
     .stTabs [data-baseweb="tab-list"] {
         background-color: var(--secondary-bg) !important;
+        border-bottom: 1px solid var(--border-color) !important;
     }
     
     .stTabs [data-baseweb="tab"] {
-        color: var(--primary-text) !important;
+        color: var(--secondary-text) !important;
+        padding: 10px 16px !important;
     }
     
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        color: var(--accent-color) !important;
+        border-bottom: 2px solid var(--accent-color) !important;
+    }
+    
+    /* Alertas personalizados */
     .stop-loss-warning {
-        background-color: #8B0000 !important;
+        background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%) !important;
         color: white !important;
-        padding: 10px;
-        border-radius: 5px;
-        margin: 10px 0;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin: 12px 0;
+        border-left: 4px solid #ef4444;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
     }
     
     .stop-loss-safe {
-        background-color: #006400 !important;
+        background: linear-gradient(135deg, #065f46 0%, #047857 100%) !important;
         color: white !important;
-        padding: 10px;
-        border-radius: 5px;
-        margin: 10px 0;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin: 12px 0;
+        border-left: 4px solid #10b981;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
     }
     
     .stop-loss-info {
-        background-color: #0047AB !important;
+        background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%) !important;
         color: white !important;
-        padding: 10px;
-        border-radius: 5px;
-        margin: 10px 0;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin: 12px 0;
+        border-left: 4px solid #3b82f6;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Cabeçalhos */
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--primary-text) !important;
+    }
+    
+    /* Expanders */
+    .streamlit-expanderHeader {
+        background-color: var(--secondary-bg) !important;
+        color: var(--primary-text) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 8px !important;
+    }
+    
+    .streamlit-expanderContent {
+        background-color: var(--secondary-bg) !important;
+        color: var(--primary-text) !important;
+        border: 1px solid var(--border-color) !important;
+        border-top: none !important;
+        border-radius: 0 0 8px 8px !important;
+    }
+    
+    /* Checkbox */
+    .stCheckbox [data-baseweb="checkbox"] {
+        background-color: var(--tertiary-bg) !important;
+        border-color: var(--border-color) !important;
+    }
+    
+    .stCheckbox label {
+        color: var(--primary-text) !important;
+    }
+    
+    /* Divider */
+    hr {
+        border-color: var(--border-color) !important;
+        margin: 20px 0 !important;
+    }
+    
+    /* Toggle */
+    .stToggle [data-baseweb="toggle"] {
+        background-color: var(--tertiary-bg) !important;
+    }
+    
+    .stToggle [data-baseweb="toggle"][aria-checked="true"] {
+        background-color: var(--accent-color) !important;
+    }
+    
+    /* Placeholder texto mais claro */
+    ::placeholder {
+        color: #94a3b8 !important;
+    }
+    
+    /* Scrollbar personalizada */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: var(--secondary-bg);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: var(--tertiary-bg);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--border-color);
     }
     </style>
     """
@@ -121,48 +239,76 @@ else:
     light_mode_css = """
     <style>
     .stop-loss-warning {
-        background-color: #FFCCCB !important;
-        color: #8B0000 !important;
-        padding: 10px;
-        border-radius: 5px;
-        margin: 10px 0;
-        border: 1px solid #8B0000;
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%) !important;
+        color: #7f1d1d !important;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin: 12px 0;
+        border-left: 4px solid #ef4444;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
     
     .stop-loss-safe {
-        background-color: #DFF0D8 !important;
-        color: #006400 !important;
-        padding: 10px;
-        border-radius: 5px;
-        margin: 10px 0;
-        border: 1px solid #006400;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+        color: #065f46 !important;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin: 12px 0;
+        border-left: 4px solid #10b981;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
     
     .stop-loss-info {
-        background-color: #CCE5FF !important;
-        color: #0047AB !important;
-        padding: 10px;
-        border-radius: 5px;
-        margin: 10px 0;
-        border: 1px solid #0047AB;
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
+        color: #1e3a8a !important;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin: 12px 0;
+        border-left: 4px solid #3b82f6;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Scrollbar para modo claro */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
     }
     </style>
     """
     st.markdown(light_mode_css, unsafe_allow_html=True)
 
-# Título da aplicação
-st.title("💰 Gestão de Capital")
+# Título da aplicação com estilo melhorado
+st.markdown("""
+    <h1 style='text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); 
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;'>
+    💰 Gestão de Capital
+    </h1>
+""", unsafe_allow_html=True)
 
 # Sidebar para configurações
 with st.sidebar:
-    st.header("Configurações")
+    st.header("⚙️ Configurações")
     
-    # Toggle para modo escuro
-    dark_mode = st.toggle("Modo Escuro", value=st.session_state.dark_mode, key="dark_mode_toggle")
+    # Toggle para modo escuro com estilo melhorado
+    dark_mode = st.toggle("🌙 Modo Escuro", value=st.session_state.dark_mode, key="dark_mode_toggle")
     if dark_mode != st.session_state.dark_mode:
         st.session_state.dark_mode = dark_mode
         st.rerun()
     
+    st.subheader("📊 Parâmetros da Banca")
     initial_value = st.number_input(
         "Valor Inicial (R$)", 
         min_value=0.0, 
@@ -189,7 +335,7 @@ with st.sidebar:
         help="Percentual máximo de perda permitido por dia"
     )
     
-    if st.button("Atualizar Configurações", use_container_width=True):
+    if st.button("🔄 Atualizar Configurações", use_container_width=True):
         st.session_state.initial_value = initial_value
         st.session_state.daily_goal = daily_goal
         st.session_state.stop_loss = stop_loss
@@ -197,7 +343,7 @@ with st.sidebar:
     
     st.divider()
     
-    st.header("Adicionar/Editar Lucro")
+    st.header("💸 Adicionar/Editar Lucro")
     
     profit_day = st.number_input(
         "Dia", 
@@ -228,24 +374,24 @@ with st.sidebar:
     # Calcular stop loss em valor absoluto
     stop_loss_value = current_value_at_day * (stop_loss / 100)
     
-    st.markdown(f'<div class="stop-loss-info">Valor da banca no dia {profit_day}: R$ {current_value_at_day:.2f}</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="stop-loss-info">Stop Loss máximo: R$ {abs(stop_loss_value):.2f} ({stop_loss}%)</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="stop-loss-info">💰 Valor da banca no dia {profit_day}: R$ {current_value_at_day:.2f}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="stop-loss-info">🛑 Stop Loss máximo: R$ {abs(stop_loss_value):.2f} ({stop_loss}%)</div>', unsafe_allow_html=True)
     
     # Verificar se o prejuízo excede o stop loss (apenas para exibição, não para bloquear)
     if daily_profit < 0 and abs(daily_profit) > stop_loss_value:
         st.markdown(f'<div class="stop-loss-warning">⚠️ ATENÇÃO: Este prejuízo excede o stop loss! Máximo permitido: R$ {abs(stop_loss_value):.2f}</div>', unsafe_allow_html=True)
-        allow_save = st.checkbox("Salvar mesmo excedendo o stop loss", value=False)
+        allow_save = st.checkbox("💾 Salvar mesmo excedendo o stop loss", value=False)
     else:
         allow_save = True
     
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("Salvar", use_container_width=True, disabled=not allow_save):
+        if st.button("💾 Salvar", use_container_width=True, disabled=not allow_save):
             st.session_state.daily_profits[profit_day-1] = daily_profit
             st.session_state.editing_day = None
             st.rerun()
     with col2:
-        if st.button("Limpar", use_container_width=True):
+        if st.button("🗑️ Limpar", use_container_width=True):
             st.session_state.daily_profits[profit_day-1] = None
             st.rerun()
 
@@ -279,19 +425,21 @@ if stop_loss_triggered:
 else:
     st.markdown('<div class="stop-loss-safe">✅ Stop Loss respeitado em todos os dias</div>', unsafe_allow_html=True)
 
-# Exibir métricas
+# Exibir métricas com estilo melhorado
+st.subheader("📈 Métricas de Desempenho")
 col1, col2, col3, col4 = st.columns(4)
 with col1:
-    st.metric("Valor Inicial", f"R$ {st.session_state.initial_value:.2f}")
+    st.metric("💰 Valor Inicial", f"R$ {st.session_state.initial_value:.2f}")
 with col2:
-    st.metric("Valor Atual", f"R$ {daily_values[-1]:.2f}")
+    st.metric("📊 Valor Atual", f"R$ {daily_values[-1]:.2f}")
 with col3:
-    st.metric("Lucro Líquido", f"R$ {total_profit:.2f}", f"{total_percent:.2f}%")
+    profit_color = "#ef4444" if total_profit < 0 else "#10b981"
+    st.metric("💵 Lucro Líquido", f"R$ {total_profit:.2f}", f"{total_percent:.2f}%")
 with col4:
-    st.metric("Stop Loss", f"{st.session_state.stop_loss}%")
+    st.metric("🛑 Stop Loss", f"{st.session_state.stop_loss}%")
 
 # Gráfico de evolução
-st.subheader("Evolução da Banca")
+st.subheader("📊 Evolução da Banca")
 fig = go.Figure()
 
 # Linha principal da evolução
@@ -300,8 +448,8 @@ fig.add_trace(go.Scatter(
     y=daily_values,
     mode='lines+markers',
     name='Valor da Banca',
-    line=dict(color='#3498db', width=3),
-    marker=dict(size=6)
+    line=dict(color='#3b82f6', width=3),
+    marker=dict(size=6, color='#3b82f6')
 ))
 
 # Adicionar linha de stop loss dinâmica
@@ -316,31 +464,45 @@ fig.add_trace(go.Scatter(
     y=stop_loss_values,
     mode='lines',
     name='Limite Stop Loss',
-    line=dict(color='#e74c3c', width=2, dash='dash'),
+    line=dict(color='#ef4444', width=2, dash='dash'),
     opacity=0.7
 ))
+
+# Configuração do layout do gráfico
+graph_bgcolor = 'rgba(0,0,0,0)' if st.session_state.dark_mode else 'rgba(255,255,255,1)'
+grid_color = '#334155' if st.session_state.dark_mode else '#e2e8f0'
+text_color = '#f1f5f9' if st.session_state.dark_mode else '#1e293b'
 
 fig.update_layout(
     xaxis_title="Dia",
     yaxis_title="Valor (R$)",
     hovermode="x unified",
     height=400,
-    plot_bgcolor='rgba(0,0,0,0)' if st.session_state.dark_mode else 'rgba(255,255,255,1)',
-    paper_bgcolor='rgba(0,0,0,0)' if st.session_state.dark_mode else 'rgba(255,255,255,1)',
-    font=dict(color='#e0e0e0' if st.session_state.dark_mode else '#333333'),
+    plot_bgcolor=graph_bgcolor,
+    paper_bgcolor=graph_bgcolor,
+    font=dict(color=text_color),
     legend=dict(
         orientation="h",
         yanchor="bottom",
         y=1.02,
         xanchor="right",
-        x=1
+        x=1,
+        font=dict(color=text_color)
+    ),
+    xaxis=dict(
+        gridcolor=grid_color,
+        zerolinecolor=grid_color
+    ),
+    yaxis=dict(
+        gridcolor=grid_color,
+        zerolinecolor=grid_color
     )
 )
 
 st.plotly_chart(fig, use_container_width=True)
 
 # Tabela de resultados com opção de edição
-st.subheader("Controle Diário - 30 Dias")
+st.subheader("📋 Controle Diário - 30 Dias")
 
 # Preparar dados para a tabela
 table_data = []
@@ -374,39 +536,20 @@ for i in range(30):
 # Criar DataFrame
 df = pd.DataFrame(table_data)
 
-# Função para aplicar estilos condicionais
-def highlight_cells(val):
-    if val.startswith("R$") and val != "R$ -":
-        profit_val = float(val[3:])
-        color = "#27ae60" if profit_val > 0 else "#e74c3c" if profit_val < 0 else "inherit"
-        return f'color: {color}; font-weight: bold;'
-    return ''
-
-def highlight_percent(val):
-    if val.endswith("%") and val != "0.00%":
-        percent_val = float(val[:-1])
-        color = "#27ae60" if percent_val > 0 else "#e74c3c" if percent_val < 0 else "inherit"
-        return f'color: {color}; font-weight: bold;'
-    return ''
-
-def highlight_status(val):
-    if val == "❌ Violado":
-        return 'color: #e74c3c; font-weight: bold;'
-    elif val == "✅ Respeitado":
-        return 'color: #27ae60; font-weight: bold;'
-    return ''
-
 # Aplicar estilos
 styled_df = df.style\
-    .applymap(highlight_cells, subset=['Lucro do Dia'])\
-    .applymap(highlight_percent, subset=['% da Banca'])\
-    .applymap(highlight_status, subset=['Status'])
+    .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x.startswith('R$ -') and '-' in x else '', subset=['Lucro do Dia'])\
+    .applymap(lambda x: 'color: #10b981; font-weight: bold;' if x.startswith('R$') and float(x[3:]) > 0 else '', subset=['Lucro do Dia'])\
+    .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x.endswith('%') and float(x[:-1]) < 0 else '', subset=['% da Banca'])\
+    .applymap(lambda x: 'color: #10b981; font-weight: bold;' if x.endswith('%') and float(x[:-1]) > 0 else '', subset=['% da Banca'])\
+    .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x == '❌ Violado' else '', subset=['Status'])\
+    .applymap(lambda x: 'color: #10b981; font-weight: bold;' if x == '✅ Respeitado' else '', subset=['Status'])
 
 # Exibir tabela
 st.dataframe(styled_df, use_container_width=True, hide_index=True)
 
 # Botões de edição rápida
-st.subheader("Edição Rápida por Dia")
+st.subheader("⚡ Edição Rápida por Dia")
 cols = st.columns(6)
 for i in range(30):
     with cols[i % 6]:
@@ -421,7 +564,7 @@ for i in range(30):
             st.rerun()
 
 # Botão para resetar todos os dados
-if st.button("Resetar Todos os Dados", type="secondary"):
+if st.button("🔄 Resetar Todos os Dados", type="secondary"):
     for key in st.session_state.keys():
         if key not in ['dark_mode', 'stop_loss']:
             del st.session_state[key]
@@ -452,10 +595,11 @@ with st.expander("ℹ️ Como usar - Stop Loss e Modo Escuro"):
     - **Alertas visuais** indicam violações do stop loss
     - **Não bloqueia** a inserção de valores, apenas alerta
     
-    ### 🎨 Modo Escuro:
-    - Interface escura para reduzir fadiga visual
-    - Cores adaptadas para melhor contraste
-    - Ideal para uso noturno ou em ambientes escuros
+    ### 🎨 Modo Escuro Elegante:
+    - Interface escura com gradientes sofisticados
+    - Cores harmoniosas e contrastes perfeitos
+    - Design moderno e minimalista
+    - Ideal para uso prolongado sem fadiga visual
     """)
 
 # Estatísticas adicionais
@@ -469,10 +613,10 @@ with st.expander("📊 Estatísticas Detalhadas"):
     
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("Dias com Lucro", days_with_profit)
+        st.metric("📈 Dias com Lucro", days_with_profit)
     with col2:
-        st.metric("Dias com Prejuízo", days_with_loss)
+        st.metric("📉 Dias com Prejuízo", days_with_loss)
     with col3:
-        st.metric("Dias Pendentes", days_pending)
+        st.metric("⏰ Dias Pendentes", days_pending)
     with col4:
-        st.metric("Stop Loss Violado", days_stop_loss_violated)
+        st.metric("🛑 Stop Loss Violado", days_stop_loss_violated)
