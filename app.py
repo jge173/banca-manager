@@ -586,7 +586,7 @@ for i in range(30):
         "Lucro do Dia": f"R$ {profit:.2f}" if profit is not None else "R$ -",
         "% da Banca": f"{percent:.2f}%" if profit is not None else "0.00%",
         "Stop Loss": f"R$ {stop_loss_value_day:.2f}",
-        "Status": "X Violado" if (profit is not None and profit < 0) or stop_loss_violated else "✓ Respeitado" if profit is not None else "X Pendente"
+        "Status": "❌ Violado" if (profit is not None and profit < 0) or stop_loss_violated else "✅ Respeitado" if profit is not None else "⏳ Pendente"
     })
 
 # Criar DataFrame
