@@ -2,6 +2,31 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
+from supabase import create_client, Client
+
+SUPABASE_URL = "https://adpemiisstnvleofyagi.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkcGVtaWlzc3Rudmxlb2Z5YWdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1MzAyMTgsImV4cCI6MjA3MzEwNjIxOH0.blHm9ufS3fQUXvwj2CBDtPqzVhYeP8HZ83wXrnkuoFM"
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+def carregar_lucros():
+    try:
+        response = supabase.table("lucros_diarios").select("*").order("dia").execute()
+        return {item["dia"]: item["lucro"] for item in response.data}
+    except Exception:
+        st.warning("Erro ao carregar dados do Supabase. Usando dados locais.")
+        return {}
+
+def salvar_lucro(dia, lucro):
+    try:
+        supabase.table("lucros_diarios").upsert({"dia": dia, "lucro": lucro}).execute()
+    except Exception:
+        st.error("Erro ao salvar no Supabase.")
+
+if 'daily_profits' not in st.session_state:
+    lucros = carregar_lucros()
+    st.session_state.daily_profits = [lucros.get(i+1, None) for i in range(30)]
+
+
 # Configuração da página
 st.set_page_config(
     page_title="Gestão de Banca",
@@ -399,6 +424,7 @@ with st.sidebar:
     with col1:
         if st.button("💾 Salvar", use_container_width=True, disabled=not allow_save):
             st.session_state.daily_profits[profit_day-1] = daily_profit
+    salvar_lucro(profit_day, daily_profit)
             st.session_state.editing_day = None
             st.rerun()
     with col2:
