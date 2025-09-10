@@ -424,7 +424,7 @@ with st.sidebar:
     with col1:
         if st.button("💾 Salvar", use_container_width=True, disabled=not allow_save):
             st.session_state.daily_profits[profit_day-1] = daily_profit
-    salvar_lucro(profit_day, daily_profit)
+            salvar_lucro(profit_day, daily_profit)
             st.session_state.editing_day = None
             st.rerun()
     with col2:
@@ -670,3 +670,4 @@ with st.expander("📊 Estatísticas Detalhadas"):
         st.metric("⏰ Dias Pendentes", days_pending)
     with col4:
         st.metric("🛑 Stop Loss Violado", days_stop_loss_violated)
+
