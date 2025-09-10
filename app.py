@@ -46,7 +46,7 @@ if 'daily_profits' not in st.session_state:
 
 # Configuração da página
 st.set_page_config(
-    page_title="Gestão de Banca",
+    page_title="Gestão de Capital",
     page_icon="💰",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -586,7 +586,7 @@ for i in range(30):
         "Lucro do Dia": f"R$ {profit:.2f}" if profit is not None else "R$ -",
         "% da Banca": f"{percent:.2f}%" if profit is not None else "0.00%",
         "Stop Loss": f"R$ {stop_loss_value_day:.2f}",
-        "Status": "❌ Violado" if stop_loss_violated else "✅ Respeitado" if profit is not None else "⏳ Pendente"
+        "Status": "X Violado" if (profit is not None and profit < 0) or stop_loss_violated else "✓ Respeitado" if profit is not None else "X Pendente"
     })
 
 # Criar DataFrame
@@ -741,3 +741,4 @@ with st.expander("🔧 Debug - Status do Banco de Dados"):
             
     except Exception as e:
         st.error(f"❌ Erro ao conectar com o banco: {e}")
+
