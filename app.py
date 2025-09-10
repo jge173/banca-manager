@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-
 from supabase import create_client, Client
 
 SUPABASE_URL = "https://adpemiisstnvleofyagi.supabase.co"
@@ -25,7 +24,6 @@ def salvar_lucro(dia, lucro):
 if 'daily_profits' not in st.session_state:
     lucros = carregar_lucros()
     st.session_state.daily_profits = [lucros.get(i+1, None) for i in range(30)]
-
 
 # Configuração da página
 st.set_page_config(
@@ -345,11 +343,13 @@ with st.sidebar:
         st.rerun()
     
     st.subheader("📊 Parâmetros da Banca")
+    
+    # CORREÇÃO: Usar float para todos os valores numéricos
     initial_value = st.number_input(
         "Valor Inicial (R$)", 
         min_value=0.0, 
         step=0.01, 
-        value=st.session_state.initial_value,
+        value=float(st.session_state.initial_value),
         key="initial_value_input"
     )
     
@@ -357,7 +357,7 @@ with st.sidebar:
         "Meta Diária (%)", 
         min_value=0.0, 
         step=0.01, 
-        value=st.session_state.daily_goal,
+        value=float(st.session_state.daily_goal),
         key="daily_goal_input"
     )
     
@@ -366,12 +366,12 @@ with st.sidebar:
         min_value=0.0, 
         max_value=100.0,
         step=0.01, 
-        value=st.session_state.stop_loss,
+        value=float(st.session_state.stop_loss),
         key="stop_loss_input",
         help="Percentual máximo de perda permitido por dia"
     )
     
-    if st.button("🔄 Atualizar Configurações", use_container_width=True):
+    if st.button("🔄 Atualizar Configurações", type="primary"):
         st.session_state.initial_value = initial_value
         st.session_state.daily_goal = daily_goal
         st.session_state.stop_loss = stop_loss
@@ -396,7 +396,7 @@ with st.sidebar:
     daily_profit = st.number_input(
         "Lucro do Dia (R$)", 
         step=0.01,
-        value=profit_value,
+        value=float(profit_value),
         key="daily_profit_input"
     )
     
@@ -422,13 +422,13 @@ with st.sidebar:
     
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("💾 Salvar", use_container_width=True, disabled=not allow_save):
+        if st.button("💾 Salvar", type="primary", disabled=not allow_save):
             st.session_state.daily_profits[profit_day-1] = daily_profit
             salvar_lucro(profit_day, daily_profit)
             st.session_state.editing_day = None
             st.rerun()
     with col2:
-        if st.button("🗑️ Limpar", use_container_width=True):
+        if st.button("🗑️ Limpar", type="secondary"):
             st.session_state.daily_profits[profit_day-1] = None
             st.rerun()
 
@@ -468,7 +468,7 @@ col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.metric("💰 Valor Inicial", f"R$ {st.session_state.initial_value:.2f}")
 with col2:
-    st.metric("📊 Valor Atual", f"R$ {daily_values[-1]:.2f}")
+    st.metric("📊 Valor Atual", f"R$ {daily_values[-1:.2f}")
 with col3:
     profit_color = "#ef4444" if total_profit < 0 else "#10b981"
     st.metric("💵 Lucro Líquido", f"R$ {total_profit:.2f}", f"{total_percent:.2f}%")
@@ -583,20 +583,48 @@ def safe_extract_value(cell_value):
     except (ValueError, AttributeError):
         return None
 
-# Aplicar estilos CORRIGIDOS - sem conversão direta de string para float
-styled_df = df.style\
-    .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x == "R$ -" else '', subset=['Lucro do Dia'])\
-    .applymap(lambda x: 'color: #10b981; font-weight: bold;' if x.startswith('R$') and x != "R$ -" and safe_extract_value(x) is not None and safe_extract_value(x) > 0 else '', subset=['Lucro do Dia'])\
-    .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x.startswith('R$') and x != "R$ -" and safe_extract_value(x) is not None and safe_extract_value(x) < 0 else '', subset=['Lucro do Dia'])\
-    .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x.endswith('%') and x != "0.00%" and safe_extract_value(x.replace('%', '')) is not None and safe_extract_value(x.replace('%', '')) < 0 else '', subset=['% da Banca'])\
-    .applymap(lambda x: 'color: #10b981; font-weight: bold;' if x.endswith('%') and x != "0.00%" and safe_extract_value(x.replace('%', '')) is not None and safe_extract_value(x.replace('%', '')) > 0 else '', subset=['% da Banca'])\
-    .applymap(lambda x: 'color: #ef4444; font-weight: bold;' if x == '❌ Violado' else '', subset=['Status'])\
-    .applymap(lambda x: 'color: #10b981; font-weight: bold;' if x == '✅ Respeitado' else '', subset=['Status'])
+# CORREÇÃO: Usar Styler.map em vez de Styler.applymap (depreciado)
+styled_df = df.style
 
-# Exibir tabela
-st.dataframe(styled_df, use_container_width=True, hide_index=True)
+# Aplicar estilos usando .map (nova versão)
+def color_lucro_dia(val):
+    if val == "R$ -":
+        return 'color: #ef4444; font-weight: bold;'
+    elif val.startswith('R$'):
+        num_val = safe_extract_value(val)
+        if num_val is not None:
+            if num_val > 0:
+                return 'color: #10b981; font-weight: bold;'
+            elif num_val < 0:
+                return 'color: #ef4444; font-weight: bold;'
+    return ''
 
-# Botões de edição rápida - CORRIGIDO
+def color_percent(val):
+    if val.endswith('%') and val != "0.00%":
+        num_val = safe_extract_value(val.replace('%', ''))
+        if num_val is not None:
+            if num_val > 0:
+                return 'color: #10b981; font-weight: bold;'
+            elif num_val < 0:
+                return 'color: #ef4444; font-weight: bold;'
+    return ''
+
+def color_status(val):
+    if val == '❌ Violado':
+        return 'color: #ef4444; font-weight: bold;'
+    elif val == '✅ Respeitado':
+        return 'color: #10b981; font-weight: bold;'
+    return ''
+
+# Aplicar os estilos
+styled_df = styled_df.map(color_lucro_dia, subset=['Lucro do Dia'])\
+                     .map(color_percent, subset=['% da Banca'])\
+                     .map(color_status, subset=['Status'])
+
+# CORREÇÃO: Usar width em vez de use_container_width (depreciado)
+st.dataframe(styled_df, width='stretch', hide_index=True)
+
+# Botões de edição rápida
 st.subheader("⚡ Edição Rápida por Dia")
 
 # Usar form para evitar o erro de session_state
@@ -608,8 +636,8 @@ with st.form("quick_edit_form"):
             profit = st.session_state.daily_profits[i]
             button_label = f"Dia {day}" + (f": {profit:.2f}" if profit is not None else "")
             
-            # Botão para cada dia
-            if st.form_submit_button(button_label, use_container_width=True):
+            # CORREÇÃO: Usar type em vez de use_container_width
+            if st.form_submit_button(button_label, type="primary"):
                 st.session_state.quick_edit_day = day
                 st.rerun()
 
@@ -670,4 +698,3 @@ with st.expander("📊 Estatísticas Detalhadas"):
         st.metric("⏰ Dias Pendentes", days_pending)
     with col4:
         st.metric("🛑 Stop Loss Violado", days_stop_loss_violated)
-
