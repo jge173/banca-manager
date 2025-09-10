@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 
 # Configuração da página
 st.set_page_config(
-    page_title="Gestão do Capital",
+    page_title="Gestão de Capital",
     page_icon="💰",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -106,6 +106,14 @@ if st.session_state.dark_mode:
         border-radius: 5px;
         margin: 10px 0;
     }
+    
+    .stop-loss-info {
+        background-color: #0047AB !important;
+        color: white !important;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+    }
     </style>
     """
     st.markdown(dark_mode_css, unsafe_allow_html=True)
@@ -129,12 +137,21 @@ else:
         margin: 10px 0;
         border: 1px solid #006400;
     }
+    
+    .stop-loss-info {
+        background-color: #CCE5FF !important;
+        color: #0047AB !important;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+        border: 1px solid #0047AB;
+    }
     </style>
     """
     st.markdown(light_mode_css, unsafe_allow_html=True)
 
 # Título da aplicação
-st.title("💰 Gestão do Capital")
+st.title("💰 Gestão de Capital")
 
 # Sidebar para configurações
 with st.sidebar:
@@ -211,19 +228,22 @@ with st.sidebar:
     # Calcular stop loss em valor absoluto
     stop_loss_value = current_value_at_day * (stop_loss / 100)
     
-    st.info(f"Valor da banca no dia {profit_day}: R$ {current_value_at_day:.2f}")
-    st.info(f"Stop Loss máximo: R$ {abs(stop_loss_value):.2f} ({stop_loss}%)")
+    st.markdown(f'<div class="stop-loss-info">Valor da banca no dia {profit_day}: R$ {current_value_at_day:.2f}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="stop-loss-info">Stop Loss máximo: R$ {abs(stop_loss_value):.2f} ({stop_loss}%)</div>', unsafe_allow_html=True)
+    
+    # Verificar se o prejuízo excede o stop loss (apenas para exibição, não para bloquear)
+    if daily_profit < 0 and abs(daily_profit) > stop_loss_value:
+        st.markdown(f'<div class="stop-loss-warning">⚠️ ATENÇÃO: Este prejuízo excede o stop loss! Máximo permitido: R$ {abs(stop_loss_value):.2f}</div>', unsafe_allow_html=True)
+        allow_save = st.checkbox("Salvar mesmo excedendo o stop loss", value=False)
+    else:
+        allow_save = True
     
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("Salvar", use_container_width=True):
-            # Verificar se o prejuízo excede o stop loss
-            if daily_profit < 0 and abs(daily_profit) > stop_loss_value:
-                st.error(f"❌ Prejuízo excede o stop loss! Máximo permitido: R$ {abs(stop_loss_value):.2f}")
-            else:
-                st.session_state.daily_profits[profit_day-1] = daily_profit
-                st.session_state.editing_day = None
-                st.rerun()
+        if st.button("Salvar", use_container_width=True, disabled=not allow_save):
+            st.session_state.daily_profits[profit_day-1] = daily_profit
+            st.session_state.editing_day = None
+            st.rerun()
     with col2:
         if st.button("Limpar", use_container_width=True):
             st.session_state.daily_profits[profit_day-1] = None
@@ -420,16 +440,17 @@ with st.expander("ℹ️ Como usar - Stop Loss e Modo Escuro"):
     2. **Adicionar/Editar Lucros**:
        - Selecione o dia desejado
        - Digite o valor do lucro (use negativo para prejuízo)
-       - O sistema alertará se o prejuízo exceder o stop loss
+       - O sistema alertará se o prejuízo exceder o stop loss, mas permitirá salvar
     
     3. **Modo Escuro**:
        - Ative/desative pelo toggle na sidebar
        - Visualização otimizada para ambientes com pouca luz
     
     ### ⚠️ Funcionalidade Stop Loss:
-    - O sistema **bloqueia prejuízos acima do limite** configurado
+    - O sistema **alerta sobre prejuízos acima do limite** configurado
     - Uma **linha tracejada vermelha** no gráfico mostra o limite diário
     - **Alertas visuais** indicam violações do stop loss
+    - **Não bloqueia** a inserção de valores, apenas alerta
     
     ### 🎨 Modo Escuro:
     - Interface escura para reduzir fadiga visual
@@ -442,13 +463,16 @@ with st.expander("📊 Estatísticas Detalhadas"):
     days_with_profit = sum(1 for p in st.session_state.daily_profits if p is not None and p > 0)
     days_with_loss = sum(1 for p in st.session_state.daily_profits if p is not None and p < 0)
     days_pending = sum(1 for p in st.session_state.daily_profits if p is None)
+    days_stop_loss_violated = sum(1 for i, p in enumerate(st.session_state.daily_profits) 
+                               if p is not None and p < 0 and 
+                               abs(p) > (st.session_state.initial_value * (st.session_state.stop_loss / 100)))
     
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric("Dias com Lucro", days_with_profit)
     with col2:
         st.metric("Dias com Prejuízo", days_with_loss)
     with col3:
         st.metric("Dias Pendentes", days_pending)
-
-
+    with col4:
+        st.metric("Stop Loss Violado", days_stop_loss_violated)
