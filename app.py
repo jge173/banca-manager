@@ -468,7 +468,7 @@ col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.metric("💰 Valor Inicial", f"R$ {st.session_state.initial_value:.2f}")
 with col2:
-    st.metric("📊 Valor Atual", f"R$ {daily_values[-1:.2f}")
+    st.metric("📉 Valor Atual", f"R$ {daily_values[-1]:.2f}")
 with col3:
     profit_color = "#ef4444" if total_profit < 0 else "#10b981"
     st.metric("💵 Lucro Líquido", f"R$ {total_profit:.2f}", f"{total_percent:.2f}%")
@@ -698,3 +698,4 @@ with st.expander("📊 Estatísticas Detalhadas"):
         st.metric("⏰ Dias Pendentes", days_pending)
     with col4:
         st.metric("🛑 Stop Loss Violado", days_stop_loss_violated)
+
