@@ -645,24 +645,21 @@ st.dataframe(styled_df, width='stretch', hide_index=True)
 # Botões de edição rápida - Layout responsivo
 st.subheader("⚡ Edição Rápida por Dia")
 
-# Determinar número de colunas baseado na largura da tela
-num_cols = 6  # Default para desktop
-
 # Usar form para evitar o erro de session_state
 with st.form("quick_edit_form"):
-    # Criar 6 colunas para desktop, 4 para tablet, 2 para mobile
-    cols = st.columns([1, 1, 1, 1, 1, 1])
+    # Criar 6 colunas para desktop
+    cols = st.columns(6)
     
     for i in range(30):
-        # Distribuir os dias em múltiplas linhas
-        col_idx = i % 6
-        with cols[col_idx]:
+        with cols[i % 6]:
             day = i + 1
             profit = st.session_state.daily_profits[i]
             button_label = f"Dia {day}" + (f": {profit:.2f}" if profit is not None else "")
             
-            # Usar botão menor para mobile
-            if st.form_submit_button(button_label, type="primary", use_container_width=True):
+            # Definir cor do botão baseado se tem valor ou não
+            button_type = "primary" if profit is not None else "secondary"
+            
+            if st.form_submit_button(button_label, type=button_type, use_container_width=True):
                 st.session_state.quick_edit_day = day
                 st.rerun()
 
@@ -747,4 +744,5 @@ with st.expander("🔧 Debug - Status do Banco de Dados"):
             
     except Exception as e:
         st.error(f"❌ Erro ao conectar com o banco: {e}")
+
 
