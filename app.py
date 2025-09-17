@@ -337,7 +337,7 @@ else:
 st.markdown("""
     <h1 style='text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); 
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;'>
-    💰 Gestão de Banca
+    💰 Gestão do Capital Financeiro
     </h1>
 """, unsafe_allow_html=True)
 
@@ -741,4 +741,5 @@ with st.expander("🔧 Debug - Status do Banco de Dados"):
             
     except Exception as e:
         st.error(f"❌ Erro ao conectar com o banco: {e}")
+
 
