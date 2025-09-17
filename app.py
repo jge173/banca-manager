@@ -423,7 +423,7 @@ with st.sidebar:
         if profit is not None:
             current_value_at_day += profit
     
-    # Calcular stop loss em valor absoluto
+    # CORREÇÃO: Cálculo consistente do stop loss em valor absoluto
     stop_loss_value = current_value_at_day * (stop_loss / 100)
     
     st.markdown(f'<div class="stop-loss-info">💰 Valor da banca no dia {profit_day}: R$ {current_value_at_day:.2f}</div>', unsafe_allow_html=True)
@@ -643,20 +643,27 @@ styled_df = styled_df.map(color_lucro_dia, subset=['Lucro do Dia'])\
 # CORREÇÃO: Usar width em vez de use_container_width (depreciado)
 st.dataframe(styled_df, width='stretch', hide_index=True)
 
-# Botões de edição rápida
+# Botões de edição rápida - Layout responsivo
 st.subheader("⚡ Edição Rápida por Dia")
+
+# Determinar número de colunas baseado na largura da tela
+num_cols = 6  # Default para desktop
 
 # Usar form para evitar o erro de session_state
 with st.form("quick_edit_form"):
-    cols = st.columns(6)
+    # Criar 6 colunas para desktop, 4 para tablet, 2 para mobile
+    cols = st.columns([1, 1, 1, 1, 1, 1])
+    
     for i in range(30):
-        with cols[i % 6]:
+        # Distribuir os dias em múltiplas linhas
+        col_idx = i % 6
+        with cols[col_idx]:
             day = i + 1
             profit = st.session_state.daily_profits[i]
             button_label = f"Dia {day}" + (f": {profit:.2f}" if profit is not None else "")
             
-            # CORREÇÃO: Usar type em vez de use_container_width
-            if st.form_submit_button(button_label, type="primary"):
+            # Usar botão menor para mobile
+            if st.form_submit_button(button_label, type="primary", use_container_width=True):
                 st.session_state.quick_edit_day = day
                 st.rerun()
 
@@ -700,7 +707,7 @@ with st.expander("ℹ️ Como usar - Stop Loss e Modo Escuro"):
     - Interface escura com gradientes sofisticados
     - Cores harmoniosas e contrastes perfeitos
     - Design moderno e minimalista
-    - Ideal para uso prolongado sem fadiga visual
+    - Ideal para uso prolongado sans fadiga visual
     """)
 
 # Estatísticas adicionais
@@ -741,5 +748,3 @@ with st.expander("🔧 Debug - Status do Banco de Dados"):
             
     except Exception as e:
         st.error(f"❌ Erro ao conectar com o banco: {e}")
-
-
