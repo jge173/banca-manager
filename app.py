@@ -647,21 +647,27 @@ st.subheader("⚡ Edição Rápida por Dia")
 
 # Usar form para evitar o erro de session_state
 with st.form("quick_edit_form"):
-    # Criar 6 colunas para desktop
-    cols = st.columns(6)
+    # Calcular número de linhas necessárias (6 colunas, 30 dias = 5 linhas)
+    num_cols = 6
+    num_rows = 5  # 30 dias / 6 colunas
     
-    for i in range(30):
-        with cols[i % 6]:
-            day = i + 1
-            profit = st.session_state.daily_profits[i]
-            button_label = f"Dia {day}" + (f": {profit:.2f}" if profit is not None else "")
-            
-            # Definir cor do botão baseado se tem valor ou não
-            button_type = "primary" if profit is not None else "secondary"
-            
-            if st.form_submit_button(button_label, type=button_type, use_container_width=True):
-                st.session_state.quick_edit_day = day
-                st.rerun()
+    # Criar uma linha para cada conjunto de 6 dias
+    for row in range(num_rows):
+        cols = st.columns(num_cols)
+        for col in range(num_cols):
+            day_index = row * num_cols + col
+            if day_index < 30:  # Garantir que não ultrapasse 30 dias
+                day = day_index + 1
+                profit = st.session_state.daily_profits[day_index]
+                button_label = f"Dia {day}" + (f": {profit:.2f}" if profit is not None else "")
+                
+                # Definir cor do botão baseado se tem valor ou não
+                button_type = "primary" if profit is not None else "secondary"
+                
+                with cols[col]:
+                    if st.form_submit_button(button_label, type=button_type, use_container_width=True):
+                        st.session_state.quick_edit_day = day
+                        st.rerun()
 
 # Botão para resetar todos os dados
 if st.button("🔄 Resetar Todos os Dados", type="secondary"):
@@ -744,5 +750,6 @@ with st.expander("🔧 Debug - Status do Banco de Dados"):
             
     except Exception as e:
         st.error(f"❌ Erro ao conectar com o banco: {e}")
+
 
 
